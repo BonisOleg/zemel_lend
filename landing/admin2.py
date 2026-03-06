@@ -2,7 +2,7 @@ from django.contrib import admin
 from .admin1 import SingletonAdmin
 from .models2 import (
     WorkStep, StatItem, AdvantageItem, AdvantagesSection,
-    ServicesSection, ContactSection, LeadSubmission,
+    ServicesSection, ContactSection, LeadSubmission, LeadInProgress
 )
 
 
@@ -56,11 +56,42 @@ class ContactSectionAdmin(SingletonAdmin):
 
 @admin.register(LeadSubmission)
 class LeadSubmissionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'phone', 'interest', 'created_at', 'is_processed')
-    list_filter = ('interest', 'is_processed')
-    list_editable = ('is_processed',)
-    readonly_fields = ('name', 'phone', 'interest', 'created_at')
+    list_display = ('name', 'phone', 'interest', 'status', 'created_at')
+    list_filter = ('interest', 'status')
+    list_editable = ('status',)
+    search_fields = ('name', 'phone', 'comment')
+    readonly_fields = ('created_at',)
+    ordering = ('-created_at',)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(status__in=[
+            LeadSubmission.STATUS_NEW,
+            LeadSubmission.STATUS_NO_ANSWER,
+            LeadSubmission.STATUS_CALL_BACK,
+            LeadSubmission.STATUS_THINKING,
+            LeadSubmission.STATUS_PUSH,
+            LeadSubmission.STATUS_WAITING_PAYMENT,
+        ])
+
+
+@admin.register(LeadInProgress)
+class LeadInProgressAdmin(admin.ModelAdmin):
+    list_display = ('name', 'phone', 'interest', 'status', 'comment', 'created_at')
+    list_filter = ('interest', 'status')
+    list_editable = ('status', 'comment')
+    search_fields = ('name', 'phone', 'comment')
+    readonly_fields = ('created_at',)
     ordering = ('-created_at',)
 
     def has_add_permission(self, request):
         return False
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(status__in=[
+            LeadSubmission.STATUS_DATA_COLLECTION,
+            LeadSubmission.STATUS_IN_PROCESS,
+            LeadSubmission.STATUS_CLOSED,
+            LeadSubmission.STATUS_OFFER_NEW,
+        ])

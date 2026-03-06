@@ -151,12 +151,43 @@ class LeadSubmission(models.Model):
         ('sell', 'Продати землю'),
         ('estimate', 'Оцінка ділянки'),
     ]
+
+    STATUS_NEW = 'new'
+    STATUS_NO_ANSWER = 'no_answer'
+    STATUS_CALL_BACK = 'call_back'
+    STATUS_THINKING = 'thinking'
+    STATUS_PUSH = 'push'
+    STATUS_WAITING_PAYMENT = 'waiting_payment'
+
+    STATUS_DATA_COLLECTION = 'data_collection'
+    STATUS_IN_PROCESS = 'in_process'
+    STATUS_CLOSED = 'closed'
+    STATUS_OFFER_NEW = 'offer_new'
+
+    STATUS_CHOICES = [
+        (STATUS_NEW, 'Новий'),
+        (STATUS_NO_ANSWER, 'Недозвон'),
+        (STATUS_CALL_BACK, 'Перетелефонувати'),
+        (STATUS_THINKING, 'Обдумує'),
+        (STATUS_PUSH, 'Дотиснути'),
+        (STATUS_WAITING_PAYMENT, 'Очікуємо оплату'),
+        (STATUS_DATA_COLLECTION, 'Збір Даних'),
+        (STATUS_IN_PROCESS, 'В процессі'),
+        (STATUS_CLOSED, 'Закритий'),
+        (STATUS_OFFER_NEW, 'Запропонувати нові послуги'),
+    ]
+
     name = models.CharField(max_length=120, verbose_name="Ім'я")
     phone = models.CharField(max_length=20, verbose_name='Телефон')
     interest = models.CharField(
         max_length=10, choices=INTEREST_CHOICES,
         verbose_name='Запит'
     )
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default=STATUS_NEW,
+        verbose_name='Статус'
+    )
+    comment = models.TextField(blank=True, verbose_name='Коментар')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата')
     is_processed = models.BooleanField(
         default=False, verbose_name='Оброблено'
@@ -169,3 +200,10 @@ class LeadSubmission(models.Model):
 
     def __str__(self):
         return f'{self.name} ({self.phone}) — {self.get_interest_display()}'
+
+
+class LeadInProgress(LeadSubmission):
+    class Meta:
+        proxy = True
+        verbose_name = 'В роботі'
+        verbose_name_plural = 'В роботі'
